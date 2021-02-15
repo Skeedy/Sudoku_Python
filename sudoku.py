@@ -1,5 +1,6 @@
 from tkinter import *
 from random import *
+import random
 
 class case:
     def __init__(self, value, x, y, row, col, mainBlock, isShow = False):
@@ -8,15 +9,16 @@ class case:
         self.isShow = isShow
         self.x = x + 49
         self.y = y + 49
+        self.placeholder = StringVar()
+        self.placeholder.set(self.value)
     def createCase(self):
-        if self.isShow:
-            placeholder = StringVar()
-            placeholder.set(self.value)
-            self.input = Entry(window, justify='center', state='disabled', font=("Purisa", 30), textvariable = placeholder)
-        else:
-            self.input = Entry(window, justify='center', state='normal', font=("Purisa", 30))
+        self.input = Entry(window, justify='center', state='normal', font=("Purisa", 30))
         self.canvas = canvas.create_window(self.x, self.y, window = self.input, height=99, width=99 )
         blocks[self.coordonate] = self
+    def showPlaceholder(self):
+        self.input['textvariable'] = self.placeholder
+        self.input['state'] = 'disabled'
+        self.isShow = True
     def deleteCase(self):
         canvas.delete(self.canvas)
     def correction(self):
@@ -27,8 +29,6 @@ class case:
                 self.input['fg'] = 'red'
         else:
             pass
-    def __del__(self):
-        print(self.coordonate, "deleted")
 
 class buttonDifficulty:
     def __init__(self, window, value, text):
@@ -36,7 +36,10 @@ class buttonDifficulty:
         self.text = text
         self.window = window
     def createButton(self):
-        self.button = Button(self.window, text=self.text )
+        if difficultyLevel == self.value:
+            self.button = Button(self.window, text=self.text, bg='red')
+        else:
+            self.button = Button(self.window, text=self.text, activebackground=None)
         self.button['command'] = lambda:createSudoko(self.value)
         self.button.pack()
     def deleteButton(self):
@@ -115,7 +118,8 @@ def createCol(x, y, i):
             else:
                 x = x + 99
 
-def createRow(y, i = 0):
+def createRow(y):
+    i = 0
     while i < 9 : #row
         x = 0
         if createCol(x, y, i) == False:
@@ -149,16 +153,35 @@ def deleteRows(rowIndex):
     for i in range(len(rowBlocks)):
         blockId = rowBlocks[i]
         block = blocks[blockId]
-        print('block', block)
         block.deleteCase()
-        print('blockId', blockId)
         del blocks[blockId]
 
-def createSudoko(difficultyLevel):
+def createSudoko(difficulty):
+    global difficultyLevel
+    difficultyLevel = difficulty
     createBigblock()
     y = 0
     createRow(y)
-    hydgfd
+    showNumber(difficulty)
+
+
+def showNumber(difficulty):
+    numberToShow  = 0
+    i = 0
+    if difficulty == 1:
+        numberToShow = 15
+    if difficulty == 2:
+        numberToShow = 10
+    if difficulty == 3:
+        numberToShow = 7
+    while i < numberToShow:
+        block = random.choice(list(blocks.values()))
+        if block.isShow == True:
+            pass
+        else:
+            block.showPlaceholder()
+            i = i +1
+
 
 def correction():
     for i in blocks.values():
@@ -179,14 +202,14 @@ window = Tk()
 
 menubar = Menu(window)
 filemenu = Menu(menubar, tearoff=0)
-filemenu.add_command(label="New", command=createSudoko)
-filemenu.add_command(label="Difficulty", command=getDifficulty)
+filemenu.add_command(label="New", command=getDifficulty)
+filemenu.add_command(label="Close", command=window.destroy)
 
 menubar.add_cascade(label="File", menu=filemenu)
 
 
 
-difficutlyLevel = 0
+difficultyLevel = 0
 canvas = Canvas(window, height = 900, width = 900, bg = 'white')
 canvas.pack()
 correctionButton = Button(window,text='Correction', command=correction)
